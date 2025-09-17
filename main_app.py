@@ -11,6 +11,13 @@ from dataclasses import dataclass
 from enum import Enum
 import time
 from datetime import datetime
+import sys
+import traceback
+import logging
+
+# Configure logging for deployment
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Set page config
 st.set_page_config(
@@ -527,7 +534,7 @@ def main():
         st.markdown("---")
         
         # Generate Data Button
-        if st.button("🔄 Generate Sample Data", type="primary", use_container_width=True):
+        if st.button("🔄 Generate Sample Data", type="primary", width='stretch'):
             with st.spinner("Generating realistic OLT port data..."):
                 progress_bar = st.progress(0)
                 for i in range(100):
@@ -617,7 +624,7 @@ def main():
     
     # Create and display visualization
     fig = create_olt_visualization(st.session_state.mapper, show_mapping)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
     
     # Enhanced legend
     st.markdown("""
@@ -633,7 +640,7 @@ def main():
     col1, col2, col3 = st.columns([3, 1, 1])
     
     with col1:
-        if st.button("▶️ Run Port Mapping Optimization", type="primary", use_container_width=True):
+        if st.button("▶️ Run Port Mapping Optimization", type="primary", width='stretch'):
             with st.spinner("🧠 Running Operations Research algorithm..."):
                 # Enhanced progress simulation
                 progress_bar = st.progress(0)
@@ -708,14 +715,14 @@ def main():
             # Migration Timeline
             st.subheader("⏰ Migration Timeline")
             timeline_fig = create_migration_timeline()
-            st.plotly_chart(timeline_fig, use_container_width=True)
+            st.plotly_chart(timeline_fig, width='stretch')
         
         with col2:
             # Priority Distribution
             st.subheader("📊 Priority Distribution")
             priority_fig = create_priority_distribution_chart(stats)
             if priority_fig:
-                st.plotly_chart(priority_fig, use_container_width=True)
+                st.plotly_chart(priority_fig, width='stretch')
             else:
                 st.info("No priority data to display")
         
@@ -810,7 +817,7 @@ def main():
                 # Display filtered table
                 st.dataframe(
                     filtered_df, 
-                    use_container_width=True,
+                    width='stretch',
                     height=400,
                     column_config={
                         'Customers': st.column_config.NumberColumn(
@@ -997,7 +1004,7 @@ def main():
                 data=json_string,
                 file_name=f"olt_migration_plan_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
                 mime="application/json",
-                use_container_width=True
+                width='stretch'
             )
         
         with col2:
@@ -1030,12 +1037,12 @@ def main():
                     data=csv_string,
                     file_name=f"port_mappings_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
                     mime="text/csv",
-                    use_container_width=True
+                    width='stretch'
                 )
         
         with col3:
             # Implementation checklist
-            if st.button("📋 View Implementation Checklist", use_container_width=True):
+            if st.button("📋 View Implementation Checklist", width='stretch'):
                 st.modal("Implementation Checklist").write("""
                 ## 🔧 Pre-Migration Checklist
                 
@@ -1105,5 +1112,15 @@ def main():
         **Version**: 2.0.0 | **Last Updated**: September 2025
         """)
 
+# Add error handling wrapper
+def safe_main():
+    try:
+        main()
+    except Exception as e:
+        st.error(f"Application Error: {str(e)}")
+        st.error("Please check the logs for more details.")
+        logger.error(f"Application error: {str(e)}")
+        logger.error(traceback.format_exc())
+
 if __name__ == "__main__":
-    main()
+    safe_main()
